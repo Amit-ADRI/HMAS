@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DocSync — Case Routing Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f2f4f3;
+        --ink: #122024;
+        --ink-soft: #4b5a5d;
+        --teal: #1f6f5c;
+        --teal-deep: #144c3f;
+        --amber: #b8863b;
+        --rose: #a94b42;
+        --line: #d6dbd8;
+        --line-soft: #e4e8e6;
+        --white: #fcfdfc;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      html,
+      body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "IBM Plex Sans", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      .serif {
+        font-family: "Source Serif 4", serif;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      button {
+        font-family: inherit;
+      }
+      .app {
+        display: grid;
+        grid-template-columns: 230px 1fr;
+        min-height: 100vh;
+      }
+      /* ---- Rail ---- */
+      .rail {
+        background: var(--teal-deep);
+        color: #eaf3ef;
+        padding: 28px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      .brand {
+        font-family: "Source Serif 4", serif;
+        font-size: 21px;
+        font-weight: 600;
+        color: #fff;
+      }
+      .brand span {
+        display: block;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 11.5px;
+        font-weight: 400;
+        color: #9dc2b5;
+        margin-top: 3px;
+        letter-spacing: 0.01em;
+      }
+      .role-switch {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .role-switch button {
+        text-align: left;
+        background: transparent;
+        border: none;
+        color: #bfdbd0;
+        font-size: 14.5px;
+        padding: 9px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        transition: background 0.15s ease;
+      }
+      .role-switch button:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .role-switch button.active {
+        background: #eaf3ef;
+        color: var(--teal-deep);
+        font-weight: 600;
+      }
+      .role-switch button .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.55;
+        flex: none;
+      }
+      .rail-foot {
+        margin-top: auto;
+        font-size: 12px;
+        color: #7fa898;
+        line-height: 1.55;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        padding-top: 16px;
+      }
+      /* ---- Stage ---- */
+      .stage {
+        padding: 40px 48px 64px;
+        max-width: 980px;
+      }
+      .stage-head {
+        margin-bottom: 30px;
+      }
+      .eyebrow {
+        font-size: 13px;
+        color: var(--ink-soft);
+        margin-bottom: 6px;
+      }
+      .stage-head h1 {
+        font-size: 28px;
+        margin: 0 0 8px;
+      }
+      .stage-head p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 14.5px;
+        max-width: 56ch;
+        line-height: 1.55;
+      }
+      /* ---- Panels/forms ---- */
+      .panel {
+        background: var(--white);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 24px 26px;
+        margin-bottom: 30px;
+      }
+      .panel h2 {
+        font-size: 17px;
+        margin: 0 0 4px;
+      }
+      .panel .sub {
+        font-size: 13px;
+        color: var(--ink-soft);
+        margin: 0 0 18px;
+      }
+      .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .field select,
+      .field input[type="text"],
+      .field textarea {
+        font-family: inherit;
+        font-size: 14px;
+        padding: 9px 11px;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .field textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+      .file-field {
+        border: 1px dashed var(--line);
+        border-radius: 3px;
+        padding: 12px 14px;
+        background: var(--paper);
+        font-size: 13px;
+        color: var(--ink-soft);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .file-field input[type="file"] {
+        font-size: 12.5px;
+        max-width: 200px;
+      }
+      .btn {
+        border: none;
+        border-radius: 3px;
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.15s ease;
+      }
+      .btn:hover {
+        opacity: 0.88;
+      }
+      .btn-primary {
+        background: var(--teal);
+        color: #fff;
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--teal-deep);
+        border: 1px solid var(--line);
+      }
+      .btn-row {
+        margin-top: 6px;
+      }
+      /* ---- Ledger ---- */
+      .ledger-title-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .ledger-title-row h2 {
+        font-size: 16px;
+        margin: 0;
+      }
+      .ledger-title-row .count {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .ledger {
+        border-top: 1px solid var(--line);
+      }
+      .ledger-row {
+        display: grid;
+        grid-template-columns: 32px 1fr 130px 120px 130px;
+        align-items: center;
+        gap: 14px;
+        padding: 13px 4px;
+        border-bottom: 1px solid var(--line-soft);
+        font-size: 13.5px;
+      }
+      .ledger-row.head {
+        font-size: 11.5px;
+        color: var(--ink-soft);
+        padding-bottom: 9px;
+        border-bottom: 1px solid var(--line);
+      }
+      .ledger-num {
+        color: var(--ink-soft);
+        font-variant-numeric: tabular-nums;
+      }
+      .case-title {
+        font-weight: 500;
+      }
+      .case-meta {
+        font-size: 12px;
+        color: var(--ink-soft);
+        margin-top: 1px;
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+      }
+      .status .sw {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex: none;
+      }
+      .status.pending .sw {
+        background: var(--amber);
+      }
+      .status.completed .sw {
+        background: var(--teal);
+      }
+      .status.pending {
+        color: #8c6323;
+      }
+      .status.completed {
+        color: var(--teal-deep);
+      }
+      .row-action {
+        text-align: right;
+      }
+      .link-btn {
+        background: none;
+        border: none;
+        color: var(--teal-deep);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 4px 0;
+      }
+      .link-btn:hover {
+        text-decoration: underline;
+      }
+      .empty-note {
+        padding: 22px 4px;
+        color: var(--ink-soft);
+        font-size: 13.5px;
+      }
+      /* ---- Doctor picker chip bar ---- */
+      .doc-picker {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 26px;
+      }
+      .doc-chip {
+        border: 1px solid var(--line);
+        background: var(--white);
+        padding: 8px 14px;
+        border-radius: 3px;
+        font-size: 13.5px;
+        cursor: pointer;
+        color: var(--ink-soft);
+      }
+      .doc-chip.active {
+        background: var(--teal-deep);
+        border-color: var(--teal-deep);
+        color: #fff;
+        font-weight: 600;
+      }
+      /* ---- Stat tiles ---- */
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+        margin-bottom: 30px;
+      }
+      .tile {
+        background: var(--white);
+        padding: 20px 20px 18px;
+      }
+      .tile .num {
+        font-family: "Source Serif 4", serif;
+        font-size: 32px;
+        font-weight: 600;
+        color: var(--teal-deep);
+        line-height: 1;
+      }
+      .tile .lbl {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-top: 8px;
+      }
+      /* ---- Performance ledger ---- */
+      .perf-row {
+        display: grid;
+        grid-template-columns: 1fr 90px 90px 170px 100px;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 4px;
+        border-bottom: 1px solid var(--line-soft);
+        cursor: pointer;
+      }
+      .perf-row.head {
+        font-size: 11.5px;
+        color: var(--ink-soft);
+        cursor: default;
+        border-bottom: 1px solid var(--line);
+      }
+      .perf-name {
+        font-weight: 500;
+      }
+      .perf-spec {
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+      .bar-track {
+        height: 6px;
+        background: var(--line-soft);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        background: var(--teal);
+      }
+      .perf-rate {
+        font-variant-numeric: tabular-nums;
+        font-size: 13px;
+        color: var(--ink-soft);
+        text-align: right;
+      }
+      .detail {
+        margin-top: -1px;
+        border: 1px solid var(--line);
+        border-top: none;
+        background: var(--paper);
+        padding: 20px 22px;
+        display: none;
+      }
+      .detail.open {
+        display: block;
+      }
+      .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+        margin-bottom: 16px;
+      }
+      .detail-grid div .num {
+        font-size: 20px;
+        font-weight: 600;
+        font-family: "Source Serif 4", serif;
+      }
+      .detail-grid div .lbl {
+        font-size: 12px;
+        color: var(--ink-soft);
+        margin-top: 3px;
+      }
+      /* ---- Toast ---- */
+      .toast {
+        position: fixed;
+        bottom: 26px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--teal-deep);
+        color: #eaf3ef;
+        padding: 12px 20px;
+        border-radius: 4px;
+        font-size: 13.5px;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s ease;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      @media (max-width: 760px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+        .rail {
+          flex-direction: row;
+          align-items: center;
+          padding: 16px 20px;
+          gap: 20px;
+        }
+        .role-switch {
+          flex-direction: row;
+        }
+        .rail-foot {
+          display: none;
+        }
+        .stage {
+          padding: 26px 20px 50px;
+        }
+        .field-row,
+        .tiles,
+        .detail-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .ledger-row {
+          grid-template-columns: 24px 1fr 90px;
+        }
+        .ledger-row span.hide-sm {
+          display: none;
+        }
+        .perf-row {
+          grid-template-columns: 1fr 70px;
+        }
+        .perf-row span.hide-sm {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="rail">
+        <div class="brand">DocSync<span>Case routing, demo build</span></div>
+        <nav class="role-switch" id="roleSwitch">
+          <button data-role="manager">
+            <span class="dot"></span>Send cases
+          </button>
+          <button data-role="doctor"><span class="dot"></span>My cases</button>
+          <button data-role="admin"><span class="dot"></span>Overview</button>
+        </nav>
+        <div class="rail-foot">
+          Demo data resets on reload. Nothing here is saved outside this browser
+          tab.
+        </div>
+      </aside>
+      <main class="stage" id="stage"></main>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+      /* ---------------- state ---------------- */
+      const doctors = [
+        { id: "d1", name: "Dr. Amara Osei", specialty: "Radiology" },
+        { id: "d2", name: "Dr. Liam Chen", specialty: "Pathology" },
+        { id: "d3", name: "Dr. Priya Nair", specialty: "Cardiology" },
+        { id: "d4", name: "Dr. Sofia Martinez", specialty: "Radiology" },
+      ];
+
+      let cases = [
+        {
+          id: 1,
+          doctorId: "d1",
+          title: "Chest CT — case 4471",
+          notes: "Follow-up on prior nodule.",
+          sentDate: "Sep 3",
+          status: "completed",
+          fileName: "ct_4471.dcm",
+          reportFileName: "report_4471.pdf",
+          completedDate: "Sep 4",
+        },
+        {
+          id: 2,
+          doctorId: "d1",
+          title: "Chest CT — case 4488",
+          notes: "",
+          sentDate: "Sep 8",
+          status: "pending",
+          fileName: "ct_4488.dcm",
+          reportFileName: null,
+          completedDate: null,
+        },
+        {
+          id: 3,
+          doctorId: "d2",
+          title: "Biopsy panel — case 2210",
+          notes: "Rush requested by referring physician.",
+          sentDate: "Sep 5",
+          status: "completed",
+          fileName: "biopsy_2210.zip",
+          reportFileName: "report_2210.pdf",
+          completedDate: "Sep 6",
+        },
+        {
+          id: 4,
+          doctorId: "d2",
+          title: "Biopsy panel — case 2233",
+          notes: "",
+          sentDate: "Sep 9",
+          status: "pending",
+          fileName: "biopsy_2233.zip",
+          reportFileName: null,
+          completedDate: null,
+        },
+        {
+          id: 5,
+          doctorId: "d3",
+          title: "Echo review — case 1187",
+          notes: "",
+          sentDate: "Sep 2",
+          status: "completed",
+          fileName: "echo_1187.mp4",
+          reportFileName: "report_1187.pdf",
+          completedDate: "Sep 3",
+        },
+        {
+          id: 6,
+          doctorId: "d3",
+          title: "Echo review — case 1190",
+          notes: "",
+          sentDate: "Sep 6",
+          status: "completed",
+          fileName: "echo_1190.mp4",
+          reportFileName: "report_1190.pdf",
+          completedDate: "Sep 7",
+        },
+        {
+          id: 7,
+          doctorId: "d3",
+          title: "Echo review — case 1204",
+          notes: "",
+          sentDate: "Sep 10",
+          status: "pending",
+          fileName: "echo_1204.mp4",
+          reportFileName: null,
+          completedDate: null,
+        },
+        {
+          id: 8,
+          doctorId: "d4",
+          title: "Mammography — case 3390",
+          notes: "",
+          sentDate: "Sep 4",
+          status: "completed",
+          fileName: "mammo_3390.dcm",
+          reportFileName: "report_3390.pdf",
+          completedDate: "Sep 5",
+        },
+        {
+          id: 9,
+          doctorId: "d4",
+          title: "Mammography — case 3402",
+          notes: "",
+          sentDate: "Sep 9",
+          status: "pending",
+          fileName: "mammo_3402.dcm",
+          reportFileName: null,
+          completedDate: null,
+        },
+      ];
+
+      let nextCaseId = 10;
+      let state = {
+        role: "manager",
+        activeDoctorId: "d1", // for "My cases" view
+        expandedPerfId: null, // for admin detail rows
+      };
+
+      /* ---------------- helpers ---------------- */
+      function doctorName(id) {
+        return doctors.find((d) => d.id === id)?.name || "—";
+      }
+      function casesFor(id) {
+        return cases.filter((c) => c.doctorId === id);
+      }
+
+      function stats(id) {
+        const list = casesFor(id);
+        const done = list.filter((c) => c.status === "completed").length;
+        return {
+          total: list.length,
+          done,
+          pending: list.length - done,
+          rate: list.length ? Math.round((done / list.length) * 100) : 0,
+        };
+      }
+
+      function toast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => t.classList.remove("show"), 2600);
+      }
+
+      /* ---------------- render root ---------------- */
+      function render() {
+        document.querySelectorAll("#roleSwitch button").forEach((b) => {
+          b.classList.toggle("active", b.dataset.role === state.role);
+        });
+        const stage = document.getElementById("stage");
+        if (state.role === "manager") stage.innerHTML = renderManager();
+        else if (state.role === "doctor") stage.innerHTML = renderDoctor();
+        else stage.innerHTML = renderAdmin();
+        bindStageEvents();
+      }
+
+      /* ---------------- manager view ---------------- */
+      function renderManager() {
+        const rows = cases.slice().sort((a, b) => b.id - a.id);
+        return `
+  <div class="stage-head">
+    <div class="eyebrow">Manager</div>
+    <h1>Send a case</h1>
+    <p>Route a file to a doctor for review. They'll see it appear in their case list right away.</p>
+  </div>
+
+  <div class="panel">
+    <h2>New case</h2>
+    <p class="sub">Fill in the details and attach the file you're routing.</p>
+    <form id="sendForm">
+      <div class="field-row">
+        <div class="field">
+          <label for="fDoctor">Assign to</label>
+          <select id="fDoctor" required>
+            ${doctors.map((d) => `<option value="${d.id}">${d.name} — ${d.specialty}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field">
+          <label for="fTitle">Case title</label>
+          <input type="text" id="fTitle" placeholder="e.g. Chest CT — case 4512" required>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label for="fNotes">Notes (optional)</label>
+        <textarea id="fNotes" placeholder="Anything the doctor should know before reviewing"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label>Attach file</label>
+        <div class="file-field">
+          <span id="fileLabel">No file selected</span>
+          <input type="file" id="fFile">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button type="submit" class="btn btn-primary">Send case</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="ledger-title-row">
+    <h2>All sent cases</h2>
+    <span class="count">${rows.length} total</span>
+  </div>
+  <div class="ledger">
+    <div class="ledger-row head">
+      <span>#</span><span>Case</span><span class="hide-sm">Doctor</span><span class="hide-sm">Sent</span><span>Status</span>
+    </div>
+    ${
+      rows
+        .map(
+          (c, i) => `
+      <div class="ledger-row">
+        <span class="ledger-num">${String(rows.length - i).padStart(2, "0")}</span>
+        <div>
+          <div class="case-title">${c.title}</div>
+          <div class="case-meta">${c.fileName}</div>
+        </div>
+        <span class="hide-sm">${doctorName(c.doctorId)}</span>
+        <span class="hide-sm">${c.sentDate}</span>
+        <span class="status ${c.status}"><span class="sw"></span>${c.status === "completed" ? "Reported" : "Pending"}</span>
+      </div>
+    `,
+        )
+        .join("") || '<div class="empty-note">No cases sent yet.</div>'
+    }
+  </div>
+  `;
+      }
+
+      /* ---------------- doctor view ---------------- */
+      function renderDoctor() {
+        const active = state.activeDoctorId;
+        const mine = casesFor(active)
+          .slice()
+          .sort((a, b) => b.id - a.id);
+        const s = stats(active);
+        return `
+  <div class="stage-head">
+    <div class="eyebrow">Doctor</div>
+    <h1>My cases</h1>
+    <p>Viewing as ${doctorName(active)}. Upload a report against any pending case to mark it complete.</p>
+  </div>
+
+  <div class="doc-picker">
+    ${doctors.map((d) => `<button class="doc-chip ${d.id === active ? "active" : ""}" data-pick-doctor="${d.id}">${d.name}</button>`).join("")}
+  </div>
+
+  <div class="ledger-title-row">
+    <h2>Assigned to ${doctorName(active)}</h2>
+    <span class="count">${s.pending} pending · ${s.done} reported</span>
+  </div>
+  <div class="ledger">
+    <div class="ledger-row head">
+      <span>#</span><span>Case</span><span class="hide-sm">Sent</span><span>Status</span><span></span>
+    </div>
+    ${
+      mine
+        .map(
+          (c, i) => `
+      <div class="ledger-row">
+        <span class="ledger-num">${String(mine.length - i).padStart(2, "0")}</span>
+        <div>
+          <div class="case-title">${c.title}</div>
+          <div class="case-meta">${c.fileName}${c.notes ? " · " + c.notes : ""}</div>
+        </div>
+        <span class="hide-sm">${c.sentDate}</span>
+        <span class="status ${c.status}"><span class="sw"></span>${c.status === "completed" ? "Reported" : "Pending"}</span>
+        <span class="row-action">
+          ${
+            c.status === "pending"
+              ? `<label class="link-btn" style="cursor:pointer;">Upload report<input type="file" data-upload="${c.id}" style="display:none;"></label>`
+              : `<span class="case-meta">${c.reportFileName}</span>`
+          }
+        </span>
+      </div>
+    `,
+        )
+        .join("") || '<div class="empty-note">No cases assigned yet.</div>'
+    }
+  </div>
+  `;
+      }
+
+      /* ---------------- admin view ---------------- */
+      function renderAdmin() {
+        const totalCases = cases.length;
+        const totalDone = cases.filter((c) => c.status === "completed").length;
+        const totalPending = totalCases - totalDone;
+        const overallRate = totalCases
+          ? Math.round((totalDone / totalCases) * 100)
+          : 0;
+
+        const perf = doctors.map((d) => ({ ...d, ...stats(d.id) }));
+
+        return `
+  <div class="stage-head">
+    <div class="eyebrow">Admin</div>
+    <h1>Overview</h1>
+    <p>Case load and turnaround across the team. Open a doctor's row for their individual report.</p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="num">${totalCases}</div><div class="lbl">Cases sent</div></div>
+    <div class="tile"><div class="num">${totalDone}</div><div class="lbl">Reported</div></div>
+    <div class="tile"><div class="num">${totalPending}</div><div class="lbl">Pending</div></div>
+    <div class="tile"><div class="num">${overallRate}%</div><div class="lbl">Completion rate</div></div>
+  </div>
+
+  <div class="ledger-title-row">
+    <h2>Doctor performance</h2>
+    <span class="count">${doctors.length} doctors</span>
+  </div>
+  <div class="ledger" style="border-top:1px solid var(--line);">
+    <div class="perf-row head">
+      <span>Doctor</span><span class="hide-sm">Assigned</span><span class="hide-sm">Reported</span><span>Completion</span><span></span>
+    </div>
+    ${perf
+      .map(
+        (p) => `
+      <div>
+        <div class="perf-row" data-toggle-perf="${p.id}">
+          <div>
+            <div class="perf-name">${p.name}</div>
+            <div class="perf-spec">${p.specialty}</div>
+          </div>
+          <span class="hide-sm">${p.total}</span>
+          <span class="hide-sm">${p.done}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${p.rate}%;"></div></div>
+          <span class="perf-rate">${p.rate}%</span>
+        </div>
+        <div class="detail ${state.expandedPerfId === p.id ? "open" : ""}">
+          <div class="detail-grid">
+            <div><div class="num">${p.total}</div><div class="lbl">Cases assigned</div></div>
+            <div><div class="num">${p.done}</div><div class="lbl">Reports submitted</div></div>
+            <div><div class="num">${p.pending}</div><div class="lbl">Awaiting report</div></div>
+          </div>
+          <button class="btn btn-ghost" data-send-report="${p.id}">Send performance report to ${p.name.replace("Dr. ", "")}</button>
+        </div>
+      </div>
+    `,
+      )
+      .join("")}
+  </div>
+  `;
+      }
+
+      /* ---------------- events ---------------- */
+      function bindStageEvents() {
+        const sendForm = document.getElementById("sendForm");
+        if (sendForm) {
+          document.getElementById("fFile").addEventListener("change", (e) => {
+            document.getElementById("fileLabel").textContent =
+              e.target.files[0]?.name || "No file selected";
+          });
+          sendForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const doctorId = document.getElementById("fDoctor").value;
+            const title = document.getElementById("fTitle").value.trim();
+            const notes = document.getElementById("fNotes").value.trim();
+            const fileInput = document.getElementById("fFile");
+            const fileName = fileInput.files[0]?.name || "attachment.pdf";
+            if (!title) return;
+            cases.push({
+              id: nextCaseId++,
+              doctorId,
+              title,
+              notes,
+              sentDate: "Today",
+              status: "pending",
+              fileName,
+              reportFileName: null,
+              completedDate: null,
+            });
+            toast(`Case sent to ${doctorName(doctorId)}`);
+            render();
+          });
+        }
+
+        document.querySelectorAll("[data-pick-doctor]").forEach((el) => {
+          el.addEventListener("click", () => {
+            state.activeDoctorId = el.dataset.pickDoctor;
+            render();
+          });
+        });
+
+        document.querySelectorAll("[data-upload]").forEach((el) => {
+          el.addEventListener("change", (e) => {
+            const id = Number(el.dataset.upload);
+            const c = cases.find((c) => c.id === id);
+            if (!c) return;
+            const fname = e.target.files[0]?.name || "report.pdf";
+            c.status = "completed";
+            c.reportFileName = fname;
+            c.completedDate = "Today";
+            toast(`Report uploaded for ${c.title}`);
+            render();
+          });
+        });
+
+        document.querySelectorAll("[data-toggle-perf]").forEach((el) => {
+          el.addEventListener("click", () => {
+            const id = el.dataset.togglePerf;
+            state.expandedPerfId = state.expandedPerfId === id ? null : id;
+            render();
+          });
+        });
+
+        document.querySelectorAll("[data-send-report]").forEach((el) => {
+          el.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const id = el.dataset.sendReport;
+            toast(`Performance report sent to ${doctorName(id)}`);
+          });
+        });
+      }
+
+      document.getElementById("roleSwitch").addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-role]");
+        if (!btn) return;
+        state.role = btn.dataset.role;
+        render();
+      });
+
+      render();
+    </script>
+  </body>
+</html>
